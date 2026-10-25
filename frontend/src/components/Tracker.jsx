@@ -9,6 +9,7 @@ import {
 import ApplicationForm from "./ApplicationForm.jsx";
 import ApplicationTable from "./ApplicationTable.jsx";
 import StatsCards from "./StatsCards.jsx";
+import useSlow from "../useSlow.js";
 
 const STATUSES = ["APPLIED", "INTERVIEW", "OFFER", "REJECTED"];
 
@@ -19,6 +20,15 @@ export default function Tracker() {
   const [filter, setFilter] = useState("");
   const [editing, setEditing] = useState(null);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState("");
+  const [initialLoading, setInitialLoading] = useState(true);
+  const showSlowMessage = useSlow(initialLoading);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timeout = window.setTimeout(() => setToast(""), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
 
   const loadData = async () => {
     try {
@@ -31,6 +41,8 @@ export default function Tracker() {
       setError("");
     } catch (e) {
       setError("Cannot reach the backend. Is Spring Boot running?");
+    } finally {
+      setInitialLoading(false);
     }
   };
 
@@ -41,6 +53,7 @@ export default function Tracker() {
   // Returns null on success, or an object of field errors from the backend
   const handleSave = async (data) => {
     try {
+      const wasEditing = Boolean(editing);
       if (editing) {
         await updateApplication(editing.id, data);
         setEditing(null);
@@ -48,6 +61,7 @@ export default function Tracker() {
         await createApplication(data);
       }
       await loadData();
+      setToast(wasEditing ? "Application updated" : "Application added");
       return null;
     } catch (e) {
       if (e.response && e.response.status === 400) return e.response.data;
@@ -62,6 +76,7 @@ export default function Tracker() {
       await deleteApplication(id);
       if (editing && editing.id === id) setEditing(null);
       await loadData();
+      setToast("Application deleted");
     } catch (e) {
       setError("Could not delete the application.");
     }
@@ -70,6 +85,13 @@ export default function Tracker() {
   return (
     <>
       {error && <div className="banner">{error}</div>}
+      {initialLoading && (
+        <div className="loading-state" role="status">
+          <span className="spinner" aria-hidden="true" />
+          <span>{showSlowMessage ? "The server is waking up. This can take up to a minute on the free plan." : "Loading your applications..."}</span>
+        </div>
+      )}
+      {toast && <div className="toast" role="status">{toast}</div>}
 
       <StatsCards stats={stats} />
 

@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { loginUser, registerUser } from "../api";
+import { useEffect, useState } from "react";
+import { API_BASE, loginUser, registerUser } from "../api";
 import { useAuth } from "../context/AuthContext.jsx";
+import Logo from "./Logo.jsx";
 
 export default function AuthPage() {
   const { login } = useAuth();
@@ -8,8 +9,20 @@ export default function AuthPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [sessionMessage, setSessionMessage] = useState("");
+
+  useEffect(() => {
+    const message = sessionStorage.getItem("jt_session_message");
+    if (message) setSessionMessage(message);
+    sessionStorage.removeItem("jt_session_message");
+  }, []);
 
   const isRegister = mode === "register";
+
+  useEffect(() => {
+    fetch(`${API_BASE}/auth/ping`).catch(() => {});
+  }, []);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -41,57 +54,92 @@ export default function AuthPage() {
 
   return (
     <div className="auth-wrap">
-      <form className="card auth-card" onSubmit={handleSubmit}>
-        <h1>Job Application Tracker</h1>
-        <p className="subtitle">
-          {isRegister ? "Create your account" : "Log in to your account"}
-        </p>
+      <main className="auth-layout">
+        <section className="auth-brand">
+          <div className="auth-brand-title">
+            <Logo />
+            <span>Job Application Tracker</span>
+          </div>
+          <p className="auth-tagline">Make your next move count.</p>
+          <ul className="benefits">
+            <li>Keep every application in one place</li>
+            <li>Stay on top of interviews and offers</li>
+            <li>See your progress at a glance</li>
+          </ul>
+        </section>
 
-        {isRegister && (
+        <form className="card auth-card" onSubmit={handleSubmit}>
+          <h1>{isRegister ? "Create your account" : "Welcome back"}</h1>
+          <p className="subtitle">
+            {isRegister ? "Start organizing your job search." : "Log in to your account."}
+          </p>
+          {sessionMessage && <div className="banner">{sessionMessage}</div>}
+
+          {isRegister && (
+            <label>
+              Name
+              <input
+                name="name"
+                placeholder="Your name"
+                value={form.name}
+                onChange={handleChange}
+                autoComplete="name"
+              />
+              {errors.name && <span className="err">{errors.name}</span>}
+            </label>
+          )}
+
           <label>
-            Name
-            <input name="name" value={form.name} onChange={handleChange} />
-            {errors.name && <span className="err">{errors.name}</span>}
+            Email
+            <input
+              name="email"
+              type="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="email"
+            />
+            {errors.email && <span className="err">{errors.email}</span>}
           </label>
-        )}
 
-        <label>
-          Email
-          <input
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            autoComplete="email"
-          />
-          {errors.email && <span className="err">{errors.email}</span>}
-        </label>
+          <label>
+            Password
+            <span className="password-control">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={form.password}
+                onChange={handleChange}
+                autoComplete={isRegister ? "new-password" : "current-password"}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </span>
+            {errors.password && <span className="err">{errors.password}</span>}
+          </label>
 
-        <label>
-          Password
-          <input
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            autoComplete={isRegister ? "new-password" : "current-password"}
-          />
-          {errors.password && <span className="err">{errors.password}</span>}
-        </label>
+          {errors.error && <div className="banner">{errors.error}</div>}
 
-        {errors.error && <div className="banner">{errors.error}</div>}
-
-        <button type="submit" className="btn primary full" disabled={loading}>
-          {loading ? "Please wait..." : isRegister ? "Register" : "Login"}
-        </button>
-
-        <p className="switch">
-          {isRegister ? "Already have an account?" : "New here?"}{" "}
-          <button type="button" className="link" onClick={switchMode}>
-            {isRegister ? "Login" : "Create an account"}
+          <button type="submit" className="btn primary full auth-submit" disabled={loading}>
+            {loading && <span className="spinner button-spinner" aria-hidden="true" />}
+            {loading ? "Please wait..." : isRegister ? "Create account" : "Log in"}
           </button>
-        </p>
-      </form>
+
+          <p className="switch">
+            {isRegister ? "Already have an account?" : "New here?"}{" "}
+            <button type="button" className="link" onClick={switchMode}>
+              {isRegister ? "Log in" : "Create an account"}
+            </button>
+          </p>
+        </form>
+      </main>
     </div>
   );
 }

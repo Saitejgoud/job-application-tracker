@@ -2,9 +2,9 @@ import axios from "axios";
 import { AUTH_KEY } from "./context/AuthContext.jsx";
 
 // Uses VITE_API_URL when deployed (set in Netlify), localhost when running locally.
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/api",
-});
+export const API_BASE =
+  import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const api = axios.create({ baseURL: API_BASE, timeout: 90000 });
 
 // Attach the JWT token to every request.
 api.interceptors.request.use((config) => {
@@ -26,6 +26,10 @@ api.interceptors.response.use(
     const url = error.config?.url || "";
     if (error.response?.status === 401 && !url.includes("/auth/")) {
       localStorage.removeItem(AUTH_KEY);
+      sessionStorage.setItem(
+        "jt_session_message",
+        "Your session expired. Please log in again."
+      );
       window.location.reload();
     }
     return Promise.reject(error);

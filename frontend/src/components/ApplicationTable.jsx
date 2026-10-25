@@ -19,7 +19,7 @@ export default function ApplicationTable({ applications, onEdit, onDelete }) {
         <tbody>
           {applications.map((a) => (
             <tr key={a.id}>
-              <td>
+              <td data-label="Company">
                 {a.jobLink ? (
                   <a href={a.jobLink} target="_blank" rel="noreferrer">
                     {a.company}
@@ -28,19 +28,21 @@ export default function ApplicationTable({ applications, onEdit, onDelete }) {
                   a.company
                 )}
               </td>
-              <td>{a.roleTitle}</td>
-              <td>
+              <td data-label="Role">{a.roleTitle}</td>
+              <td data-label="Status">
                 <span className={`badge badge-${a.status.toLowerCase()}`}>{a.status}</span>
               </td>
-              <td>{a.appliedDate}</td>
-              <td className="notes">{a.notes}</td>
-              <td className="row-actions">
-                <button className="btn small" onClick={() => onEdit(a)}>
-                  Edit
-                </button>
-                <button className="btn small danger" onClick={() => onDelete(a.id)}>
-                  Delete
-                </button>
+              <td data-label="Applied">{a.appliedDate}</td>
+              <td data-label="Notes" className="notes">{a.notes}</td>
+              <td data-label="Actions">
+                <div className="row-actions">
+                  <button className="btn small" onClick={() => onEdit(a)}>
+                    Edit
+                  </button>
+                  <button className="btn small danger" onClick={() => onDelete(a.id)}>
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

@@ -1,3 +1,4 @@
+HEAD
 # Job Application Tracker
 
 A full-stack app to track the jobs you have applied to, with JWT login and an admin role.
@@ -95,3 +96,5 @@ Send the token as: `Authorization: Bearer <token>`
 2. Interview rounds (one-to-many)
 3. Swagger docs and more tests
 4. Dashboard charts and follow-up reminders
+# job-application-tracker
+ 2fc90351e5626f49b66080bfb4cfabe8dac42442
